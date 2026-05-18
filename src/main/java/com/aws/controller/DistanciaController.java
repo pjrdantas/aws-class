@@ -20,10 +20,6 @@ public class DistanciaController {
     @PostMapping("/distancia")
     public ResponseEntity<DistanciaResponseDto> calcularDistancia(@RequestBody(required = false) DistanciaRequestDto request) {
         DistanciaResponseDto response = calcularDistanciaUseCase.executar(request);
-        if (response.distanciaMetros() == null) {
-            return ResponseEntity.badRequest().body(response);
-        }
-
         return ResponseEntity.ok(response);
     }
 }

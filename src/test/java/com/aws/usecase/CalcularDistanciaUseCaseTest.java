@@ -3,9 +3,12 @@ package com.aws.usecase;
 import com.aws.dto.DistanciaRequestDto;
 import com.aws.dto.DistanciaResponseDto;
 import com.aws.dto.PontoDto;
+import com.aws.exception.CampoObrigatorioException;
+import com.aws.exception.LocalidadeVaziaException;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CalcularDistanciaUseCaseTest {
 
@@ -25,11 +28,22 @@ class CalcularDistanciaUseCaseTest {
     }
 
     @Test
-    void deveRetornarWarnQuandoRequestForVazio() {
-        DistanciaResponseDto response = useCase.executar(null);
+    void deveLancarExceptionQuandoRequestForVazio() {
+        assertThatThrownBy(() -> useCase.executar(null))
+                .isInstanceOf(LocalidadeVaziaException.class)
+                .hasMessage("As coordenadas devem ser informadas.");
+    }
 
-        assertThat(response.distanciaMetros()).isNull();
-        assertThat(response.mensagem()).contains("nao podem vir vazios");
+    @Test
+    void deveLancarExceptionQuandoLatitudeForVazia() {
+        DistanciaRequestDto request = new DistanciaRequestDto(
+                new PontoDto(null, -46.655981),
+                new PontoDto(-22.951916, -43.210487)
+        );
+
+        assertThatThrownBy(() -> useCase.executar(request))
+                .isInstanceOf(CampoObrigatorioException.class)
+                .hasMessage("A latitude deve ser informada.");
     }
 
     private org.assertj.core.data.Offset<Double> withinOneMeter() {
