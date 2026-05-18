@@ -6,7 +6,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class S3Service {
@@ -51,5 +55,21 @@ public class S3Service {
                 .stream()
                 .map(S3Object::key)
                 .toList();
+    }
+
+    public void salvarLogJson(String tipo, String payloadJson) {
+        String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+        String chaveArquivo = "logs/" + tipo + "/" + timestamp + "-" + UUID.randomUUID() + ".json";
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(BUCKET)
+                .key(chaveArquivo)
+                .contentType("application/json")
+                .build();
+
+        s3Client.putObject(
+                request,
+                software.amazon.awssdk.core.sync.RequestBody.fromBytes(payloadJson.getBytes(StandardCharsets.UTF_8))
+        );
     }
 }
