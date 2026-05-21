@@ -1,5 +1,7 @@
 package com.aws.dynamo.service;
 
+import com.aws.shared.exception.CampoObrigatorioException;
+import com.aws.shared.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -27,6 +29,10 @@ public class UsuarioDynamoService {
     }
 
     public Map<String, String> criar(String id, String nome, String email) {
+        validarCampoObrigatorio(id, "id");
+        validarCampoObrigatorio(nome, "nome");
+        validarCampoObrigatorio(email, "email");
+
         Map<String, AttributeValue> item = new HashMap<>();
         item.put(partitionKeyName, AttributeValue.builder().s(id).build());
         item.put("nome", AttributeValue.builder().s(nome).build());
@@ -41,6 +47,8 @@ public class UsuarioDynamoService {
     }
 
     public Map<String, String> buscarPorId(String id) {
+        validarCampoObrigatorio(id, "id");
+
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         GetItemResponse response = dynamoDbClient.getItem(GetItemRequest.builder()
@@ -49,7 +57,7 @@ public class UsuarioDynamoService {
                 .build());
 
         if (!response.hasItem() || response.item().isEmpty()) {
-            throw ResourceNotFoundException.builder().message("Usuário não encontrado com id: " + id).build();
+            throw new RecursoNaoEncontradoException("Usuario nao encontrado com id: " + id);
         }
 
         return toUsuario(response.item());
@@ -66,6 +74,10 @@ public class UsuarioDynamoService {
     }
 
     public Map<String, String> atualizar(String id, String nome, String email) {
+        validarCampoObrigatorio(id, "id");
+        validarCampoObrigatorio(nome, "nome");
+        validarCampoObrigatorio(email, "email");
+
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         Map<String, AttributeValueUpdate> updates = new HashMap<>();
@@ -88,6 +100,8 @@ public class UsuarioDynamoService {
     }
 
     public void deletar(String id) {
+        validarCampoObrigatorio(id, "id");
+
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         dynamoDbClient.deleteItem(DeleteItemRequest.builder()
@@ -102,5 +116,11 @@ public class UsuarioDynamoService {
                 "nome", item.getOrDefault("nome", AttributeValue.builder().s("").build()).s(),
                 "email", item.getOrDefault("email", AttributeValue.builder().s("").build()).s()
         );
+    }
+
+    private void validarCampoObrigatorio(String valor, String campo) {
+        if (valor == null || valor.isBlank()) {
+            throw new CampoObrigatorioException("O campo " + campo + " deve ser informado.");
+        }
     }
 }
