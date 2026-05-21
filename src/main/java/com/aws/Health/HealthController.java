@@ -1,4 +1,4 @@
-package com.aws.controller;
+package com.aws.Health;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

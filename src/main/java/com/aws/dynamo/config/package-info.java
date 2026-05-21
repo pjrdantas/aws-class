@@ -1,1 +1,0 @@
-package com.aws.dynamo.config;

@@ -1,4 +1,4 @@
-package com.aws.dto;
+package com.aws.distancia.dto;
 
 public record DistanciaResponseDto(Double distanciaMetros, String mensagem) {
 }

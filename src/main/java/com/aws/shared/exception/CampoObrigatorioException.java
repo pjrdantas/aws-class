@@ -1,4 +1,4 @@
-package com.aws.exception;
+package com.aws.shared.exception;
 
 public class CampoObrigatorioException extends RuntimeException {
 

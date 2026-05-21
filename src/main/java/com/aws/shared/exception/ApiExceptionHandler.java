@@ -1,7 +1,7 @@
-package com.aws.exception;
+package com.aws.shared.exception;
 
-import com.aws.dto.ErroResponseDto;
 import com.aws.s3.service.S3Service;
+import com.aws.shared.dto.ErroResponseDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

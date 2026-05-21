@@ -1,9 +1,9 @@
-package com.aws.controller;
+package com.aws.distancia.controller;
 
-import com.aws.dto.DistanciaRequestDto;
-import com.aws.dto.DistanciaResponseDto;
+import com.aws.distancia.dto.DistanciaRequestDto;
+import com.aws.distancia.dto.DistanciaResponseDto;
+import com.aws.distancia.usercase.CalcularDistanciaUseCase;
 import com.aws.s3.service.S3Service;
-import com.aws.usecase.CalcularDistanciaUseCase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;

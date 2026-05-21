@@ -1,10 +1,11 @@
-package com.aws.usecase;
+package com.aws.distancia.usercase;
 
-import com.aws.dto.DistanciaRequestDto;
-import com.aws.dto.DistanciaResponseDto;
-import com.aws.dto.PontoDto;
-import com.aws.exception.CampoObrigatorioException;
-import com.aws.exception.LocalidadeVaziaException;
+import com.aws.distancia.dto.DistanciaRequestDto;
+import com.aws.distancia.dto.DistanciaResponseDto;
+import com.aws.distancia.dto.PontoDto;
+import com.aws.shared.exception.CampoObrigatorioException;
+import com.aws.shared.exception.LocalidadeVaziaException;
+
 import org.springframework.stereotype.Service;
 
 @Service
