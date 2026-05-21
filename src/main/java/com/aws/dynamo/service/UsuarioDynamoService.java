@@ -14,33 +14,34 @@ public class UsuarioDynamoService {
 
     private final DynamoDbClient dynamoDbClient;
     private final String tableName;
+    private final String partitionKeyName;
 
     public UsuarioDynamoService(
             DynamoDbClient dynamoDbClient,
-            @Value("${aws.dynamo.table-name:usuarios}") String tableName
+            @Value("${aws.dynamo.table-name:academia-java-aws}") String tableName,
+            @Value("${aws.dynamo.partition-key:aula-6}") String partitionKeyName
     ) {
         this.dynamoDbClient = dynamoDbClient;
         this.tableName = tableName;
+        this.partitionKeyName = partitionKeyName;
     }
 
     public Map<String, String> criar(String id, String nome, String email) {
         Map<String, AttributeValue> item = new HashMap<>();
-        item.put("id", AttributeValue.builder().s(id).build());
+        item.put(partitionKeyName, AttributeValue.builder().s(id).build());
         item.put("nome", AttributeValue.builder().s(nome).build());
         item.put("email", AttributeValue.builder().s(email).build());
 
-        PutItemRequest request = PutItemRequest.builder()
+        dynamoDbClient.putItem(PutItemRequest.builder()
                 .tableName(tableName)
                 .item(item)
-                .build();
-
-        dynamoDbClient.putItem(request);
+                .build());
 
         return Map.of("id", id, "nome", nome, "email", email);
     }
 
     public Map<String, String> buscarPorId(String id) {
-        Map<String, AttributeValue> key = Map.of("id", AttributeValue.builder().s(id).build());
+        Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         GetItemResponse response = dynamoDbClient.getItem(GetItemRequest.builder()
                 .tableName(tableName)
@@ -65,7 +66,7 @@ public class UsuarioDynamoService {
     }
 
     public Map<String, String> atualizar(String id, String nome, String email) {
-        Map<String, AttributeValue> key = Map.of("id", AttributeValue.builder().s(id).build());
+        Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         Map<String, AttributeValueUpdate> updates = new HashMap<>();
         updates.put("nome", AttributeValueUpdate.builder()
@@ -87,7 +88,7 @@ public class UsuarioDynamoService {
     }
 
     public void deletar(String id) {
-        Map<String, AttributeValue> key = Map.of("id", AttributeValue.builder().s(id).build());
+        Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         dynamoDbClient.deleteItem(DeleteItemRequest.builder()
                 .tableName(tableName)
@@ -97,7 +98,7 @@ public class UsuarioDynamoService {
 
     private Map<String, String> toUsuario(Map<String, AttributeValue> item) {
         return Map.of(
-                "id", item.getOrDefault("id", AttributeValue.builder().s("").build()).s(),
+                "id", item.getOrDefault(partitionKeyName, AttributeValue.builder().s("").build()).s(),
                 "nome", item.getOrDefault("nome", AttributeValue.builder().s("").build()).s(),
                 "email", item.getOrDefault("email", AttributeValue.builder().s("").build()).s()
         );
