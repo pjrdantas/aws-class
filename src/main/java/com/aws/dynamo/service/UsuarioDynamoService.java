@@ -1,5 +1,8 @@
 package com.aws.dynamo.service;
 
+import com.aws.shared.exception.CampoObrigatorioException;
+import com.aws.shared.exception.RecursoJaExisteException;
+import com.aws.shared.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -27,20 +30,31 @@ public class UsuarioDynamoService {
     }
 
     public Map<String, String> criar(String id, String nome, String email) {
+        validarCampoObrigatorio(id, "id");
+        validarCampoObrigatorio(nome, "nome");
+        validarCampoObrigatorio(email, "email");
+
         Map<String, AttributeValue> item = new HashMap<>();
         item.put(partitionKeyName, AttributeValue.builder().s(id).build());
         item.put("nome", AttributeValue.builder().s(nome).build());
         item.put("email", AttributeValue.builder().s(email).build());
 
-        dynamoDbClient.putItem(PutItemRequest.builder()
-                .tableName(tableName)
-                .item(item)
-                .build());
-
+        try {
+            dynamoDbClient.putItem(PutItemRequest.builder()
+                    .tableName(tableName)
+                    .item(item)
+                    .conditionExpression("attribute_not_exists(#pk)")
+                    .expressionAttributeNames(Map.of("#pk", partitionKeyName))
+                    .build());
+        } catch (ConditionalCheckFailedException exception) {
+            throw new RecursoJaExisteException("Usuario ja existe com id: " + id);
+        }
         return Map.of("id", id, "nome", nome, "email", email);
     }
 
     public Map<String, String> buscarPorId(String id) {
+        validarCampoObrigatorio(id, "id");
+
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         GetItemResponse response = dynamoDbClient.getItem(GetItemRequest.builder()
@@ -49,7 +63,7 @@ public class UsuarioDynamoService {
                 .build());
 
         if (!response.hasItem() || response.item().isEmpty()) {
-            throw ResourceNotFoundException.builder().message("Usuário não encontrado com id: " + id).build();
+            throw new RecursoNaoEncontradoException("Usuario nao encontrado com id: " + id);
         }
 
         return toUsuario(response.item());
@@ -66,6 +80,10 @@ public class UsuarioDynamoService {
     }
 
     public Map<String, String> atualizar(String id, String nome, String email) {
+        validarCampoObrigatorio(id, "id");
+        validarCampoObrigatorio(nome, "nome");
+        validarCampoObrigatorio(email, "email");
+
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
         Map<String, AttributeValueUpdate> updates = new HashMap<>();
@@ -78,22 +96,36 @@ public class UsuarioDynamoService {
                 .action(AttributeAction.PUT)
                 .build());
 
-        dynamoDbClient.updateItem(UpdateItemRequest.builder()
-                .tableName(tableName)
-                .key(key)
-                .attributeUpdates(updates)
-                .build());
+        try {
+            dynamoDbClient.updateItem(UpdateItemRequest.builder()
+                    .tableName(tableName)
+                    .key(key)
+                    .attributeUpdates(updates)
+                    .conditionExpression("attribute_exists(#pk)")
+                    .expressionAttributeNames(Map.of("#pk", partitionKeyName))
+                    .build());
+        } catch (ConditionalCheckFailedException exception) {
+            throw new RecursoNaoEncontradoException("Usuario nao encontrado com id: " + id);
+        }
 
         return Map.of("id", id, "nome", nome, "email", email);
     }
 
     public void deletar(String id) {
+        validarCampoObrigatorio(id, "id");
+
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
-        dynamoDbClient.deleteItem(DeleteItemRequest.builder()
-                .tableName(tableName)
-                .key(key)
-                .build());
+        try {
+            dynamoDbClient.deleteItem(DeleteItemRequest.builder()
+                    .tableName(tableName)
+                    .key(key)
+                    .conditionExpression("attribute_exists(#pk)")
+                    .expressionAttributeNames(Map.of("#pk", partitionKeyName))
+                    .build());
+        } catch (ConditionalCheckFailedException exception) {
+            throw new RecursoNaoEncontradoException("Usuario nao encontrado com id: " + id);
+        }
     }
 
     private Map<String, String> toUsuario(Map<String, AttributeValue> item) {
@@ -102,5 +134,11 @@ public class UsuarioDynamoService {
                 "nome", item.getOrDefault("nome", AttributeValue.builder().s("").build()).s(),
                 "email", item.getOrDefault("email", AttributeValue.builder().s("").build()).s()
         );
+    }
+
+    private void validarCampoObrigatorio(String valor, String campo) {
+        if (valor == null || valor.isBlank()) {
+            throw new CampoObrigatorioException("O campo " + campo + " deve ser informado.");
+        }
     }
 }
