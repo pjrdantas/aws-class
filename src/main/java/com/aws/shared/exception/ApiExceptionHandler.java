@@ -42,6 +42,11 @@ public class ApiExceptionHandler {
         return montarResposta(HttpStatus.NOT_FOUND, mensagem, request.getRequestURI());
     }
 
+    @ExceptionHandler(RecursoJaExisteException.class)
+    public ResponseEntity<ErroResponseDto> tratarConflict(RecursoJaExisteException exception, HttpServletRequest request) {
+        return montarResposta(HttpStatus.CONFLICT, exception.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResponseDto> tratarErroInesperado(HttpServletRequest request) {
         return montarResposta(HttpStatus.BAD_REQUEST, "Nao foi possivel processar a requisicao.", request.getRequestURI());

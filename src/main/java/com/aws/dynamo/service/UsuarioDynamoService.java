@@ -1,6 +1,7 @@
 package com.aws.dynamo.service;
 
 import com.aws.shared.exception.CampoObrigatorioException;
+import com.aws.shared.exception.RecursoJaExisteException;
 import com.aws.shared.exception.RecursoNaoEncontradoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -38,11 +39,16 @@ public class UsuarioDynamoService {
         item.put("nome", AttributeValue.builder().s(nome).build());
         item.put("email", AttributeValue.builder().s(email).build());
 
-        dynamoDbClient.putItem(PutItemRequest.builder()
-                .tableName(tableName)
-                .item(item)
-                .build());
-
+        try {
+            dynamoDbClient.putItem(PutItemRequest.builder()
+                    .tableName(tableName)
+                    .item(item)
+                    .conditionExpression("attribute_not_exists(#pk)")
+                    .expressionAttributeNames(Map.of("#pk", partitionKeyName))
+                    .build());
+        } catch (ConditionalCheckFailedException exception) {
+            throw new RecursoJaExisteException("Usuario ja existe com id: " + id);
+        }
         return Map.of("id", id, "nome", nome, "email", email);
     }
 
@@ -90,11 +96,17 @@ public class UsuarioDynamoService {
                 .action(AttributeAction.PUT)
                 .build());
 
-        dynamoDbClient.updateItem(UpdateItemRequest.builder()
-                .tableName(tableName)
-                .key(key)
-                .attributeUpdates(updates)
-                .build());
+        try {
+            dynamoDbClient.updateItem(UpdateItemRequest.builder()
+                    .tableName(tableName)
+                    .key(key)
+                    .attributeUpdates(updates)
+                    .conditionExpression("attribute_exists(#pk)")
+                    .expressionAttributeNames(Map.of("#pk", partitionKeyName))
+                    .build());
+        } catch (ConditionalCheckFailedException exception) {
+            throw new RecursoNaoEncontradoException("Usuario nao encontrado com id: " + id);
+        }
 
         return Map.of("id", id, "nome", nome, "email", email);
     }
@@ -104,10 +116,16 @@ public class UsuarioDynamoService {
 
         Map<String, AttributeValue> key = Map.of(partitionKeyName, AttributeValue.builder().s(id).build());
 
-        dynamoDbClient.deleteItem(DeleteItemRequest.builder()
-                .tableName(tableName)
-                .key(key)
-                .build());
+        try {
+            dynamoDbClient.deleteItem(DeleteItemRequest.builder()
+                    .tableName(tableName)
+                    .key(key)
+                    .conditionExpression("attribute_exists(#pk)")
+                    .expressionAttributeNames(Map.of("#pk", partitionKeyName))
+                    .build());
+        } catch (ConditionalCheckFailedException exception) {
+            throw new RecursoNaoEncontradoException("Usuario nao encontrado com id: " + id);
+        }
     }
 
     private Map<String, String> toUsuario(Map<String, AttributeValue> item) {
