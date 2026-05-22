@@ -8,6 +8,14 @@ API Spring Boot para calcular a distancia em metros entre dois pontos geografico
 POST /distancia
 ```
 
+```http
+POST /sns/publicar
+```
+
+```http
+POST /sqs/enviar
+```
+
 ## JSON de entrada
 
 ```json
@@ -98,4 +106,63 @@ HTTP 404 Not Found
 
 ```powershell
 .\mvnw.cmd test
+```
+
+## Publicar mensagem no SNS
+
+Topico configurado:
+
+```text
+arn:aws:sns:us-east-2:606103596924:academia-aws-aula-8
+```
+
+Exemplo:
+
+```powershell
+curl -X POST http://localhost:8082/sns/publicar `
+  -H "Content-Type: application/json" `
+  -d "{\"assunto\":\"ana-aula/8\",\"mensagem\":\"Mensagem enviada pela API Java\"}"
+```
+
+Resposta de sucesso:
+
+```json
+{
+  "messageId": "00000000-0000-0000-0000-000000000000",
+  "topicArn": "arn:aws:sns:us-east-2:606103596924:academia-aws-aula-8",
+  "mensagem": "Mensagem publicada com sucesso"
+}
+```
+
+## Enviar mensagem para o SQS
+
+Fila configurada:
+
+```text
+arn:aws:sqs:us-east-2:606103596924:aula-7
+```
+
+URL da fila:
+
+```text
+https://sqs.us-east-2.amazonaws.com/606103596924/aula-7
+```
+
+Exemplo:
+
+```powershell
+curl -X POST http://localhost:8082/sqs/enviar `
+  -H "Content-Type: application/json" `
+  -d "{\"mensagem\":\"Mensagem enviada para a fila aula-7 pela API Java\"}"
+```
+
+Resposta de sucesso:
+
+```json
+{
+  "messageId": "00000000-0000-0000-0000-000000000000",
+  "queueUrl": "https://sqs.us-east-2.amazonaws.com/606103596924/aula-7",
+  "queueArn": "arn:aws:sqs:us-east-2:606103596924:aula-7",
+  "mensagem": "Mensagem enviada com sucesso"
+}
 ```

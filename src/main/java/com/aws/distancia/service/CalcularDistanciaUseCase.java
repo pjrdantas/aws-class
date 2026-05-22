@@ -1,4 +1,4 @@
-package com.aws.distancia.usercase;
+package com.aws.distancia.service;
 
 import com.aws.distancia.dto.DistanciaRequestDto;
 import com.aws.distancia.dto.DistanciaResponseDto;

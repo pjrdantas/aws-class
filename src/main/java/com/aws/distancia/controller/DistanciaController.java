@@ -2,7 +2,7 @@ package com.aws.distancia.controller;
 
 import com.aws.distancia.dto.DistanciaRequestDto;
 import com.aws.distancia.dto.DistanciaResponseDto;
-import com.aws.distancia.usercase.CalcularDistanciaUseCase;
+import com.aws.distancia.service.CalcularDistanciaUseCase;
 import com.aws.s3.service.S3Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

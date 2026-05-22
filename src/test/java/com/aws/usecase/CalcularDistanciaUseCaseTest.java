@@ -3,7 +3,7 @@ package com.aws.usecase;
 import com.aws.distancia.dto.DistanciaRequestDto;
 import com.aws.distancia.dto.DistanciaResponseDto;
 import com.aws.distancia.dto.PontoDto;
-import com.aws.distancia.usercase.CalcularDistanciaUseCase;
+import com.aws.distancia.service.CalcularDistanciaUseCase;
 import com.aws.shared.exception.CampoObrigatorioException;
 import com.aws.shared.exception.LocalidadeVaziaException;
 
